@@ -1,6 +1,8 @@
 import math
-from itertools import combinations
+from itertools import combinations, product
 from multiprocessing import Pool
+import time
+from zoneinfo import reset_tzpath
 
 
 def preberi_dnk(ime_datoteke):
@@ -46,23 +48,23 @@ def brute_force(L):
     return resitve
 
 
-# brute force but multi-threaded
+def process_subset(subset, M, set_L):
+    X = {0, *subset, M}
+    dX = {abs(a - b) for a, b in combinations(X, 2)}
+
+    if dX == set_L:
+        return frozenset(X)
+    return None
+
+
 def brute_force_multi(L):
     M = L[-1:][0]
     n = int((1 + math.sqrt(1 + 8 * len(L))) / 2)
     set_L = set(L)
 
-    def process_subset(subset):
-        X = {0, *subset, M}
-        dX = {abs(a - b) for a, b in combinations(X, 2)}
-
-        if dX == set_L:
-            return frozenset(X)
-        return None
-
     subsets = combinations(L, n - 2)
     with Pool(8) as pool:
-        resitve = set(pool.map(process_subset, subsets))
+        resitve = set(pool.starmap(process_subset, [(subset, M, set_L) for subset in subsets]))
 
     return resitve
 
@@ -99,6 +101,40 @@ def partial_digest(L):
     return rezultat
 
 
+# Function to generate all combinations and log/save the results
+def poisci_reze_and_log(dnk_seq, filename="results.txt"):
+    # Define the set of letters
+    letters = ['A', 'C', 'T', 'G']
+
+    # Open the file to write results
+    with open(filename, "w") as file:
+        # Generate all combinations with length from 1 to 6
+        for length in range(1, 7):
+            for comb in product(letters, repeat=length):
+                comb_str = ''.join(comb)  # Convert tuple to string
+                result = len(poisci_reze(dnk_seq, comb_str))
+
+                # Log the output number to the file
+                file.write(f"Combination: {comb_str}, Result: {result}\n")
+
+                # Optional: Also print to console
+                print(f"Combination: {comb_str}, Result: {result}")
+
+    print(f"Results saved to {filename}")
+
+def getTimes():
+    repeat = 100
+    sum = 0
+    for _ in range(repeat):
+        start = time.time()
+
+        end = time.time()
+        sum += end - start
+
+    diff = sum / repeat
+
+    print(f"Čas izvajanja: {diff:.2f} s")
+
 if __name__ == "__main__":
     # print("Podaj ime datoteke z DNK zaporedjem: ")
     # ime_datoteke = input()
@@ -109,6 +145,9 @@ if __name__ == "__main__":
 
     # Branje DNK datoteke
     dnk_zaporedje = preberi_dnk("DNK1.txt")
+
+    # poisci_reze_and_log(dnk_zaporedje, "rezi_DNK1.txt")
+    # exit(0)
 
     # Iskanje rezov in računanje razdalj
     mesto = ["AAAA", "CCCC", "TTTT", "GGGG"]
