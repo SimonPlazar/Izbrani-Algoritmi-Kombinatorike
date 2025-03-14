@@ -1,0 +1,10 @@
+Partial digest
+Zaporedje: DNK1.txt, Mesto reza: ['GTGTG'], Čas izvajanja: 8.98 µs
+Zaporedje: DNK1.txt, Mesto reza: ['TTCC', 'CTCTCT'], Čas izvajanja: 226.68 µs
+Zaporedje: DNK1.txt, Mesto reza: ['AAAA', 'CCCC', 'TTTT', 'GGGG'], Čas izvajanja: 270.62 µs
+Zaporedje: DNK2.txt, Mesto reza: ['ACTACT', 'GGAGGA', 'GAGGCC', 'CTCTCT'], Čas izvajanja: 341.84 µs
+Zaporedje: DNK3.txt, Mesto reza: ['TTTTTTT', 'GTGTCGT', 'ACACACA'], Čas izvajanja: 736.55 µs
+
+Brute force
+Zaporedje: DNK1.txt, Mesto reza: ['GTGTG'], Čas izvajanja: 19.99 µs
+Zaporedje: DNK1.txt, Mesto reza: ['TTCC', 'CTCTCT'], Čas izvajanja: 42997774.12 µs
