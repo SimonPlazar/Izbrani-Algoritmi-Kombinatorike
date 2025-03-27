@@ -34,11 +34,13 @@ def find_ordered_strips(data, breakpoints):
     ascending_strips = []
     descending_strips = []
     single_item_strips = []
+
     if not breakpoints.__contains__(0):
         breakpoints = [0] + breakpoints
     if not breakpoints.__contains__(len(data) - 1):
         breakpoints = breakpoints + [len(data) - 1]
     # breakpoints = [0] + breakpoints + [len(data) - 1]
+
     for i in range(len(breakpoints)-1):
         start, end = breakpoints[i], breakpoints[i + 1]
         if end - start > 1:  # Multiple elements in the strip
@@ -60,12 +62,14 @@ def find_ordered_strips(data, breakpoints):
 
 def improvedBreakpointReversalSort(data):
     # data = [6, 9, 8, 1, 4, 7, 3, 2, 5]
-    data = [0, 13, 2, 17, 1, 3, 20, 19, 11, 12, 4, 5, 16, 15, 10, 18, 14, 8, 7, 6, 9, 21]
+    # data = [0, 13, 2, 17, 1, 3, 20, 19, 11, 12, 4, 5, 16, 15, 10, 18, 14, 8, 7, 6, 9, 21]
+    # print(data)
 
     while True:
         # get breakpoints
         breakpoints = getBreakpoints(data)
-        print("Breakpoints:", len(breakpoints), breakpoints)
+        # print("Breakpoints:", len(breakpoints), breakpoints)
+        print("Breakpoints:", len(breakpoints))
 
         if not breakpoints:
             return data
@@ -102,9 +106,9 @@ def improvedBreakpointReversalSort(data):
                 smallest_element = data[descending_strips[x][1]]
                 strip = descending_strips[x]
 
-        print("Smallest Element:", smallest_element)
-        print("Smallest Element ix:", strip[1])
-        print("Strip:", strip)
+        # print("Smallest Element:", smallest_element)
+        # print("Smallest Element ix:", strip[1])
+        # print("Strip:", strip)
 
         # find the element smallest_element-1 in the data
         # index = data.index(smallest_element - 1)
@@ -120,36 +124,38 @@ def improvedBreakpointReversalSort(data):
         # data = data[:index] + data[strip[0]:strip[1] + 1] + data[index + 1:strip[0]] + data[strip[1] + 1:]
 
         # Reverse the strip first
-        data[strip[0]:strip[1] + 1] = list(reversed(data[strip[0]:strip[1] + 1]))
+        # data[strip[0]:strip[1] + 1] = list(reversed(data[strip[0]:strip[1] + 1]))
 
         # Handle splicing based on index position
         if index == -1:
             # Move the reversed strip to the beginning
-            data = data[strip[0]:strip[1] + 1] + data[:strip[0]] + data[strip[1] + 1:]
+            # data = data[strip[0]:strip[1] + 1] + data[:strip[0]] + data[strip[1] + 1:]
+            data[0:strip[1] + 1] = list(reversed(data[0:strip[1] + 1]))
         elif index < strip[0]:
             # Index is before the strip
-            data = data[:index + 1] + data[strip[0]:strip[1] + 1] + data[index + 1:strip[0]] + data[strip[1] + 1:]
+            # data = data[:index + 1] + data[strip[0]:strip[1] + 1] + data[index + 1:strip[0]] + data[strip[1] + 1:]
+            data[index+1:strip[1]+1] = list(reversed(data[index+1:strip[1]+1]))
         elif index > strip[1]:
             # Index is after the strip
-            data = data[:strip[0]] + data[strip[1] + 1:index + 1] + data[strip[0]:strip[1] + 1] + data[index + 1:]
+            # data = data[:strip[0]] + data[strip[1] + 1:index + 1] + data[strip[0]:strip[1] + 1] + data[index + 1:]
+            data[strip[1]+1:index+1] = list(reversed(data[strip[1]+1:index+1]))
         else:
-            # Index is within the strip, which shouldn't happen in this algorithm
-            # In this case, we'll keep the strip in place after reversal
+            # Index is within the strip
             pass
 
-        print("Reordered Data:", data)
+        # print("Reordered Data:", data)
 
 
 if __name__ == '__main__':
     filename = ""
 
-    filename = "G5.txt"
+    filename = "G2.txt"
 
     if len(sys.argv) > 1:
         filename = sys.argv[1]
 
     readData = readFileData(filename)
-    print("Data:\n", readData)
+    # print("Data:\n", readData)
 
     # simpleReverseData = simpleReversalSort(readData)
     # print("Simple Reversal Sort:\n", simpleReverseData)
