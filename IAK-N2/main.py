@@ -35,30 +35,28 @@ def find_ordered_strips(data, breakpoints):
     descending_strips = []
     single_item_strips = []
 
-    if not breakpoints.__contains__(0):
-        breakpoints = [0] + breakpoints
-    if not breakpoints.__contains__(len(data) - 1):
-        breakpoints = breakpoints + [len(data) - 1]
-    # breakpoints = [0] + breakpoints + [len(data) - 1]
+    # Ensure we include the beginning and end of the array
+    complete_breakpoints = [-1] + breakpoints + [len(data) - 1]
 
-    for i in range(len(breakpoints)-1):
-        start, end = breakpoints[i], breakpoints[i + 1]
+    for i in range(len(complete_breakpoints) - 1):
+        start, end = complete_breakpoints[i], complete_breakpoints[i + 1]
         if end - start > 1:  # Multiple elements in the strip
-            strip = data[start + 1:end + 1]  # Elements in the strip
+            strip_start = start + 1
+            strip_end = end
+            strip = data[strip_start:strip_end + 1]  # Elements in the strip
 
             # Check if strip is in ascending order
             if all(strip[j] < strip[j + 1] for j in range(len(strip) - 1)):
-                ascending_strips.append([start + 1, end])
+                ascending_strips.append([strip_start, strip_end])
 
             # Check if strip is in descending order
             elif all(strip[j] > strip[j + 1] for j in range(len(strip) - 1)):
-                descending_strips.append([start + 1, end])
+                descending_strips.append([strip_start, strip_end])
         else:
+            # Single element
             single_item_strips.append([start + 1, end])
-            # ascending_strips.append([start + 1, end])
 
     return ascending_strips, descending_strips, single_item_strips
-
 
 def improvedBreakpointReversalSort(data):
     # data = [6, 9, 8, 1, 4, 7, 3, 2, 5]
@@ -91,7 +89,7 @@ def improvedBreakpointReversalSort(data):
             # random_strip = random.choice(ascending_strips)
             # random_strip = random.choice(valid_strips)
             # random_strip = random.choice(ascending_strips)
-            random_strip = ascending_strips[0]
+            random_strip = ascending_strips[-1]
             data[random_strip[0]:random_strip[1] + 1] = list(
                 reversed(data[random_strip[0]:random_strip[1] + 1]))
 
@@ -149,7 +147,7 @@ def improvedBreakpointReversalSort(data):
 if __name__ == '__main__':
     filename = ""
 
-    filename = "G2.txt"
+    filename = "G5.txt"
 
     if len(sys.argv) > 1:
         filename = sys.argv[1]
