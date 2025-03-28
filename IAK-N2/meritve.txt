@@ -1,0 +1,43 @@
+Algorithm times for file  G1.txt
+Simple Reversal Sort Average Time taken: 0.12998342514038086 ms
+Rotations made: 8
+Improved Breakpoint Reversal Sort Average Time taken: 0.07003307342529297 ms
+Rotations made: 7
+Own Implementation Average Time taken: 0.010004043579101562 ms
+Rotations made: 7
+
+
+Algorithm times for file  G2.txt
+Simple Reversal Sort Average Time taken: 1.281273365020752 ms
+Rotations made: 97
+Improved Breakpoint Reversal Sort Average Time taken: 2.7196383476257324 ms
+Rotations made: 86
+Own Implementation Average Time taken: 0.11927604675292969 ms
+Rotations made: 87
+
+
+Algorithm times for file  G3.txt
+Simple Reversal Sort Average Time taken: 63.95096778869629 ms
+Rotations made: 997
+Improved Breakpoint Reversal Sort Average Time taken: 239.03133630752563 ms
+Rotations made: 846
+Own Implementation Average Time taken: 8.07060956954956 ms
+Rotations made: 905
+
+
+Algorithm times for file  G4.txt
+Simple Reversal Sort Average Time taken: 6511.690711975098 ms
+Rotations made: 9999
+Improved Breakpoint Reversal Sort Average Time taken: 27384.023189544678 ms
+Rotations made: 8494
+Own Implementation Average Time taken: 1017.8741455078125 ms
+Rotations made: 9166
+
+
+Algorithm times for file  G5.txt
+Simple Reversal Sort Average Time taken: 693613.0592823029 ms
+Rotations made: 99996
+Improved Breakpoint Reversal Sort Average Time taken: DNF
+Rotations made: DNF
+Own Implementation Average Time taken: 106142.31038093567 ms
+Rotations made: 91918
