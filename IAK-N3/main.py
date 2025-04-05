@@ -1,5 +1,4 @@
 import time
-import itertools
 from typing import List, Tuple
 import numpy as np
 import sys
@@ -11,14 +10,10 @@ def read_dna_file(filename: str) -> str:
 
 
 def get_nmers(dna: str, n: int, t: int) -> List[str]:
-    """Split DNA into t n-mers."""
     return [dna[i:i + n] for i in range(0, t * n, n)]
 
 
-def score_motifs(motifs: List[str]) -> int:
-    """Calculate score for a list of motifs (l-mers)."""
-    # Create profile matrix
-    l = len(motifs[0])
+def get_profile(motifs: List[str], l: int) -> np.ndarray:
     profile = np.zeros((4, l))
 
     # Count nucleotides at each position
@@ -32,6 +27,14 @@ def score_motifs(motifs: List[str]) -> int:
                 profile[2, i] += 1
             elif nucleotide == 'C':
                 profile[3, i] += 1
+
+    return profile
+
+
+def score_motifs(motifs: List[str]) -> int:
+    # Create profile matrix
+    l = len(motifs[0])
+    profile = get_profile(motifs, l)
 
     # Calculate score (sum of maximum counts at each position)
     score = sum(np.max(profile[:, j]) for j in range(l))
@@ -39,22 +42,9 @@ def score_motifs(motifs: List[str]) -> int:
 
 
 def get_consensus(motifs: List[str]) -> str:
-    """Get consensus sequence from motifs."""
-    l = len(motifs[0])
     consensus = ""
-    profile = np.zeros((4, l))
-
-    # Count nucleotides at each position
-    for motif in motifs:
-        for i, nucleotide in enumerate(motif):
-            if nucleotide == 'A':
-                profile[0, i] += 1
-            elif nucleotide == 'T':
-                profile[1, i] += 1
-            elif nucleotide == 'G':
-                profile[2, i] += 1
-            elif nucleotide == 'C':
-                profile[3, i] += 1
+    l = len(motifs[0])
+    profile = get_profile(motifs, l)
 
     # For each position, find the most frequent nucleotide
     nucleotides = ['A', 'T', 'G', 'C']
@@ -66,7 +56,6 @@ def get_consensus(motifs: List[str]) -> str:
 
 
 def greedy_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[List[int], str, int]:
-    """Greedy algorithm for motif finding."""
     nmers = get_nmers(dna, n, t)
 
     # Try all possible starting positions for the first n-mer
@@ -110,12 +99,10 @@ def greedy_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[List[int], st
 
 
 def hamming_distance(s1: str, s2: str) -> int:
-    """Calculate Hamming distance between two strings."""
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
 
 def min_hamming_distance(pattern: str, text: str, l: int) -> Tuple[int, int]:
-    """Find the minimum Hamming distance of pattern to any l-mer in text."""
     min_dist = float('inf')
     min_pos = 0
 
@@ -129,14 +116,9 @@ def min_hamming_distance(pattern: str, text: str, l: int) -> Tuple[int, int]:
 
 
 def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[List[int], str, int]:
-    """Branch and bound algorithm for motif finding."""
     nmers = get_nmers(dna, n, t)
 
     # Generate all possible l-mers (potential consensus sequences)
-    # For practical reasons, we'll limit this to smaller l values
-    if l > 10:
-        raise ValueError("l is too large for branch and bound (max 10)")
-
     best_consensus = ""
     best_distance = float('inf')
     best_positions = []
@@ -147,8 +129,7 @@ def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[Lis
         for i in range(n - l + 1):
             all_lmers.add(nmer[i:i + l])
 
-    # Instead of generating 4^l patterns, we'll use l-mers present in the sequence
-    # This is a significant optimization
+    # use l-mers present in the sequence
     for consensus_pattern in all_lmers:
         total_distance = 0
         positions = []
@@ -158,7 +139,7 @@ def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[Lis
             total_distance += dist
             positions.append(pos)
 
-            # Early termination - if current distance is already worse than best
+            # If current distance is already worse than best
             if total_distance >= best_distance:
                 break
 
@@ -171,7 +152,6 @@ def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[Lis
 
 
 def measure_performance(dna: str, n: int, l: int, t: int) -> Tuple[float, float]:
-    """Measure performance of both algorithms."""
     # Measure greedy algorithm
     start_time = time.time()
     greedy_starts, greedy_consensus, greedy_score = greedy_motif_search(dna, n, l, t)
