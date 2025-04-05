@@ -152,28 +152,34 @@ def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[Lis
 
 
 def measure_performance(dna: str):
-    filename = "performance_results_single.txt"
-    with open(filename, "w") as file:
-        for l in range(2, 11):
-            for n in range(l, 101):
-                for t in range(2, 6):
-                    start_time = time.time()
-                    greedy_motif_search(dna, n, l, t)
-                    greedy_time = time.time() - start_time
+    filename = "performance_results.txt"
 
-                    start_time = time.time()
-                    branch_and_bound_motif_search(dna, n, l, t)
-                    bnb_time = time.time() - start_time
+    for l in range(2, 11):
+        for n in range(l, 101):
+            for t in range(2, 6):
+                print(f"\nTesting with l={l}, n={n}, t={t}")
+                # Measure greedy algorithm
+                start_time = time.time()
+                greedy_motif_search(dna, n, l, t)
+                greedy_time = time.time() - start_time
+                print(f"Greedy Motif Search Time: {greedy_time:.4f} seconds")
 
-                    print(f"l={l}, n={n}, t={t} | Greedy: {greedy_time:.4f}s | BnB: {bnb_time:.4f}s")
-                    file.write(f"l={l}, n={n}, t={t} | Greedy: {greedy_time:.4f}s | BnB: {bnb_time:.4f}s\n")
+                # Measure branch and bound algorithm
+                start_time = time.time()
+                branch_and_bound_motif_search(dna, n, l, t)
+                bnb_time = time.time() - start_time
+                print(f"B&B Motif Search Time: {bnb_time:.4f} seconds")
 
+                # write to text file
+                with open(filename, 'a') as file:
+                    file.write(f"l={l}, n={n}, t={t}, Greedy Time: {greedy_time:.4f} seconds, "
+                               f"B&B Time: {bnb_time:.4f} seconds\n")
 
 if __name__ == '__main__':
     filename = "DNK1.txt"
 
-    # measure_performance(read_dna_file(filename))
-    # exit(0)
+    measure_performance(read_dna_file(filename))
+    exit(0)
 
     if len(sys.argv) > 1:
         filename = sys.argv[1]
