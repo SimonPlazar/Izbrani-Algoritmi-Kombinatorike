@@ -70,97 +70,6 @@ def find_ordered_strips(data, breakpoints):
     return ascending_strips, descending_strips, single_item_strips, index_to_strip
 
 
-def improvedBreakpointReversalSort(data):
-    # data = [6, 9, 8, 1, 4, 7, 3, 2, 5]
-    # data = [0, 13, 2, 17, 1, 3, 20, 19, 11, 12, 4, 5, 16, 15, 10, 18, 14, 8, 7, 6, 9, 21]
-    # print(data)
-
-    rotations = 0
-
-    while True:
-        # get breakpoints
-        breakpoints = getBreakpoints(data)
-        # print("Breakpoints:", len(breakpoints), breakpoints)
-        # print("Breakpoints:", len(breakpoints))
-
-        if not breakpoints:
-            print("Rotations made:", rotations)
-            return data
-
-        ascending_strips, descending_strips, single_item_strips, _ = find_ordered_strips(data, breakpoints)
-        # print("Descending Strips:", descending_strips)
-        # print("Ascending Strips:", ascending_strips)
-
-        if not descending_strips:
-            if not ascending_strips:
-                print("No Ascending or Descending Strips")
-                return data
-                # data[0:breakpoints[0]] = list(reversed(data[0: breakpoints[0]]))
-                # continue
-            # data[ascending_strips[0][0]:ascending_strips[0][1] + 1] = list(
-            # reversed(data[ascending_strips[0][0]:ascending_strips[0][1] + 1]))
-            # valid_strips = [strip for strip in ascending_strips
-            #                 if strip[0] != strip[1]]
-            # random_strip = random.choice(ascending_strips)
-            # random_strip = random.choice(valid_strips)
-            # random_strip = random.choice(ascending_strips)
-            random_strip = ascending_strips[-1]
-            data[random_strip[0]:random_strip[1] + 1] = list(
-                reversed(data[random_strip[0]:random_strip[1] + 1]))
-
-            rotations += 1
-            continue
-
-        # Get the smallest element of all strips
-        # smallest_element = min(data[strip[1]] for strip in descending_strips)
-        smallest_element = data[descending_strips[0][1]]
-        strip = descending_strips[0]
-        for x in range(1, len(descending_strips)):
-            if data[descending_strips[x][1]] < smallest_element:
-                smallest_element = data[descending_strips[x][1]]
-                strip = descending_strips[x]
-
-        # print("Smallest Element:", smallest_element)
-        # print("Smallest Element ix:", strip[1])
-        # print("Strip:", strip)
-
-        # find the element smallest_element-1 in the data
-        # index = data.index(smallest_element - 1)
-        index = -1
-        for asc_strip in ascending_strips + single_item_strips:
-            if data[asc_strip[1]] == smallest_element - 1:
-                index = asc_strip[1]
-                break
-        # print("Index of smallest_element-1:", index)
-
-        # splice the data
-        # data[strip[0]:strip[1] + 1] = list(reversed(data[strip[0]:strip[1] + 1]))
-        # data = data[:index] + data[strip[0]:strip[1] + 1] + data[index + 1:strip[0]] + data[strip[1] + 1:]
-
-        # Reverse the strip first
-        # data[strip[0]:strip[1] + 1] = list(reversed(data[strip[0]:strip[1] + 1]))
-
-        # Handle splicing based on index position
-        if index == -1:
-            # Move the reversed strip to the beginning
-            # data = data[strip[0]:strip[1] + 1] + data[:strip[0]] + data[strip[1] + 1:]
-            data[0:strip[1] + 1] = list(reversed(data[0:strip[1] + 1]))
-        elif index < strip[0]:
-            # Index is before the strip
-            # data = data[:index + 1] + data[strip[0]:strip[1] + 1] + data[index + 1:strip[0]] + data[strip[1] + 1:]
-            data[index + 1:strip[1] + 1] = list(reversed(data[index + 1:strip[1] + 1]))
-        elif index > strip[1]:
-            # Index is after the strip
-            # data = data[:strip[0]] + data[strip[1] + 1:index + 1] + data[strip[0]:strip[1] + 1] + data[index + 1:]
-            data[strip[1] + 1:index + 1] = list(reversed(data[strip[1] + 1:index + 1]))
-        else:
-            # Index is within the strip
-            pass
-
-        rotations += 1
-        # print("Reordered Data:", data)
-
-
 def update_breakpoints(data, breakpoints, start_index, end_index):
     # Remove existing breakpoints in the modified range (keep those outside the range)
     breakpoints = [bp for bp in breakpoints if bp < start_index - 1 or bp > end_index]
@@ -245,76 +154,7 @@ def update_ordered_strips(data, ascending_strips, descending_strips, single_item
     return ascending_strips, descending_strips, single_item_strips, index_to_strip
 
 
-def improvedBreakpointReversalSort2(data):
-    rotations = 0
-    breakpoints = getBreakpoints(data)  # Initial calculation of all breakpoints
-
-    while breakpoints:
-        ascending_strips, descending_strips, single_item_strips, index_to_strip = find_ordered_strips(data, breakpoints)
-
-        if not descending_strips:
-            if not ascending_strips:
-                print("No Ascending or Descending Strips")
-                return data
-
-            # Choose the last ascending strip
-            random_strip = ascending_strips[-1]
-            start_idx = random_strip[0]
-            end_idx = random_strip[1]
-
-            # Reverse the strip
-            data[start_idx:end_idx + 1] = list(reversed(data[start_idx:end_idx + 1]))
-
-            # Update only the affected breakpoints
-            breakpoints = update_breakpoints(data, breakpoints, start_idx, end_idx)
-
-            ascending_strips.remove(random_strip)
-            descending_strips.append(random_strip)
-
-            rotations += 1
-
-        # Get the smallest element at the end of any descending strip
-        smallest_element = min(data[strip[1]] for strip in descending_strips)
-        index = data.index(smallest_element)
-        strip = index_to_strip[index]
-
-        # Find position of smallest_element-1
-        try:
-            index = data.index(smallest_element - 1)
-        except ValueError:
-            index = -1
-
-        # Handle different cases for reversal
-        if index == -1:
-            # Move the reversed strip to the beginning
-            start_idx = 0
-            end_idx = strip[1]
-            data[start_idx:end_idx + 1] = list(reversed(data[start_idx:end_idx + 1]))
-        elif index < strip[0]:
-            # Index is before the strip
-            start_idx = index + 1
-            end_idx = strip[1]
-            data[start_idx:end_idx + 1] = list(reversed(data[start_idx:end_idx + 1]))
-        elif index > strip[1]:
-            # Index is after the strip
-            start_idx = strip[1] + 1
-            end_idx = index
-            data[start_idx:end_idx + 1] = list(reversed(data[start_idx:end_idx + 1]))
-        else:
-            # Index is within the strip - no need to reverse
-            rotations += 1
-            continue
-
-        # Update only the affected breakpoints
-        breakpoints = update_breakpoints(data, breakpoints, start_idx, end_idx)
-
-        rotations += 1
-
-    print("Rotations made:", rotations)
-    return data
-
-
-def improvedBreakpointReversalSort3(data):
+def improvedBreakpointReversalSort(data, heuristic=1):
     rotations = 0
     breakpoints = getBreakpoints(data)  # Initial calculation of all breakpoints
     ascending_strips, descending_strips, single_item_strips, index_to_strip = find_ordered_strips(data, breakpoints)
@@ -343,13 +183,25 @@ def improvedBreakpointReversalSort3(data):
 
             rotations += 1
 
-        # Get the smallest element at the end of any descending strip
-        smallest_element = min(data[strip[1]] for strip in descending_strips)
 
-        # Find which strip contains the smallest element
-        for strip in descending_strips:
-            if data[strip[1]] == smallest_element:
-                break
+        smallest_element = None
+        strip = None
+        if heuristic == 1:
+            # Get the smallest element at the end of any descending strip
+            smallest_element = min(data[strip[1]] for strip in descending_strips)
+
+            # Find which strip contains the smallest element
+            for strip in descending_strips:
+                if data[strip[1]] == smallest_element:
+                    break
+        elif heuristic == 2:
+            # Get the
+            strip = random.choice(descending_strips)
+            smallest_element = data[strip[1]]
+        elif heuristic == 3:
+            # Get last strip
+            strip = descending_strips[-1]
+            smallest_element = data[strip[1]]
 
         # Find position of smallest_element-1
         try:
@@ -390,13 +242,15 @@ def improvedBreakpointReversalSort3(data):
     return data
 
 
+
+
 def getTimes():
-    filename = "G4.txt"
+    filename = "G1.txt"
 
     readData = readFileData(filename)
     # print("Data:\n", readData)
 
-    count = 1
+    count = 100
     simpleTimes = 0
     breakpointTimes = 0
     ownTimes = 0
@@ -410,19 +264,19 @@ def getTimes():
             print("Simple Reversal Sort Failed")
 
         start = time.time()
-        breakpointData = improvedBreakpointReversalSort(readData.copy())
+        breakpointData = improvedBreakpointReversalSort(readData.copy(), 1)
         breakpointTimes += (time.time() - start) * 1000
         if any(breakpointData[i] != i + 1 for i in range(len(breakpointData))):
             print("Improved Breakpoint Reversal Sort Failed")
 
         start = time.time()
-        ownData = improvedBreakpointReversalSort2(readData.copy())
+        ownData = improvedBreakpointReversalSort(readData.copy(), 2)
         ownTimes += (time.time() - start) * 1000
         if any(ownData[i] != i + 1 for i in range(len(ownData))):
             print("Own Implementation Failed")
 
         start = time.time()
-        improvedOwnData = improvedBreakpointReversalSort3(readData.copy())
+        improvedOwnData = improvedBreakpointReversalSort(readData.copy(), 3)
         improvedOwnTimes += (time.time() - start) * 1000
         if any(improvedOwnData[i] != i + 1 for i in range(len(improvedOwnData))):
             print("Improved Own Implementation Failed")
@@ -439,7 +293,7 @@ if __name__ == '__main__':
     # getTimes()
     # exit(0)
 
-    filename = "G2.txt"
+    filename = "G5.txt"
 
     if len(sys.argv) > 1:
         filename = sys.argv[1]
@@ -447,26 +301,26 @@ if __name__ == '__main__':
     readData = readFileData(filename)
     # print("Data:\n", readData)
 
-    start = time.time()
-    simpleReverseData = simpleReversalSort(readData.copy())
-    print("simpleReversalSort Time taken:", (time.time() - start) * 1000, "ms")
-    print("Correctly Sorted:", all(simpleReverseData[i] == i + 1 for i in range(len(simpleReverseData))))
+    # start = time.time()
+    # simpleReverseData = simpleReversalSort(readData.copy())
+    # print("simpleReversalSort Time taken:", (time.time() - start) * 1000, "ms")
+    # print("Correctly Sorted:", all(simpleReverseData[i] == i + 1 for i in range(len(simpleReverseData))))
     # print("Simple Reversal Sort:\n", simpleReverseData)
 
     start = time.time()
-    breakpointData = improvedBreakpointReversalSort(readData.copy())
+    breakpointData = improvedBreakpointReversalSort(readData.copy(), 1)
     print("improvedBreakpointReversalSort Time taken:", (time.time() - start) * 1000, "ms")
     print("Correctly Sorted:", all(breakpointData[i] == i + 1 for i in range(len(breakpointData))))
     # print("Improved Breakpoint Reversal Sort:\n", breakpointData)
 
-    start = time.time()
-    ownData = improvedBreakpointReversalSort2(readData.copy())
-    print("Own Implementation Time taken:", (time.time() - start) * 1000, "ms")
-    print("Correctly Sorted:", all(ownData[i] == i + 1 for i in range(len(ownData))))
+    # start = time.time()
+    # ownData = improvedBreakpointReversalSort(readData.copy(), 2)
+    # print("Own Implementation Time taken:", (time.time() - start) * 1000, "ms")
+    # print("Correctly Sorted:", all(ownData[i] == i + 1 for i in range(len(ownData))))
     # print("Own Implementation:\n", ownData)
 
-    start = time.time()
-    improvedOwnData = improvedBreakpointReversalSort3(readData.copy())
-    print("Improved Own Implementation Time taken:", (time.time() - start) * 1000, "ms")
-    print("Correctly Sorted:", all(improvedOwnData[i] == i + 1 for i in range(len(improvedOwnData))))
+    # start = time.time()
+    # improvedOwnData = improvedBreakpointReversalSort(readData.copy(), 3)
+    # print("Improved Own Implementation Time taken:", (time.time() - start) * 1000, "ms")
+    # print("Correctly Sorted:", all(improvedOwnData[i] == i + 1 for i in range(len(improvedOwnData))))
     # print("Improved Own Implementation:\n", improvedOwnData)
