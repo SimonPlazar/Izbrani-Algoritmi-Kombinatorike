@@ -115,8 +115,8 @@ def recursive_greedy_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[Lis
             combinations_explored += 1
             current_score = score_motifs(current_motifs)
 
-            if combinations_explored % 1000 == 0:
-                print(f"Explored {combinations_explored}/{expected_combinations} combinations")
+            # if combinations_explored % 1000 == 0:
+            #     print(f"Explored {combinations_explored}/{expected_combinations} combinations")
 
             if current_score > best_score:
                 best_score = current_score
@@ -135,7 +135,7 @@ def recursive_greedy_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[Lis
     # Start recursive exploration
     explore_combinations(0, [], [])
 
-    print(f"Explored {combinations_explored}/{expected_combinations} combinations")
+    # print(f"Explored {combinations_explored}/{expected_combinations} combinations")
     if combinations_explored != expected_combinations:
         print("Warning: Not all combinations were explored!")
 
@@ -203,6 +203,8 @@ def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> tuple[lis
     return best_positions, best_consensus, best_distance
 
 
+import concurrent.futures
+
 def measure_performance(dna: str):
     filename = "performance_results.txt"
 
@@ -210,23 +212,44 @@ def measure_performance(dna: str):
         for l in range(2, 11):
             for n in range(10, 101, 10):
                 print(f"\nTesting with l={l}, n={n}, t={t}")
-                # Measure greedy algorithm
-                start_time = time.time()
-                greedy_motif_search(dna, n, l, t)
-                greedy_time = time.time() - start_time
-                print(f"Greedy Motif Search Time: {greedy_time:.4f} seconds")
 
-                # Measure branch and bound algorithm
-                start_time = time.time()
-                branch_and_bound_motif_search(dna, n, l, t)
-                bnb_time = time.time() - start_time
-                print(f"B&B Motif Search Time: {bnb_time:.4f} seconds")
+                # Measure greedy algorithm with timeout
+                greedy_time = None
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(recursive_greedy_motif_search, dna, n, l, t)
+                    try:
+                        start_time = time.time()
+                        future.result(timeout=10)  # 10 second timeout
+                        greedy_time = time.time() - start_time
+                        print(f"Greedy Motif Search Time: {greedy_time:.4f} seconds")
+                    except concurrent.futures.TimeoutError:
+                        print(f"Greedy algorithm aborted - exceeded 10 seconds")
 
-                # write to text file
+                # Measure branch and bound algorithm with timeout
+                bnb_time = None
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(branch_and_bound_motif_search, dna, n, l, t)
+                    try:
+                        start_time = time.time()
+                        future.result(timeout=10)  # 10 second timeout
+                        bnb_time = time.time() - start_time
+                        print(f"B&B Motif Search Time: {bnb_time:.4f} seconds")
+                    except concurrent.futures.TimeoutError:
+                        print(f"B&B algorithm aborted - exceeded 10 seconds")
+
+                # Write to text file
                 with open(filename, 'a') as file:
-                    file.write(f"l={l}, n={n}, t={t}, Greedy Time: {greedy_time:.4f} seconds, "
-                               f"B&B Time: {bnb_time:.4f} seconds\n")
-
+                    # file.write(f"l={l}, n={n}, t={t}, Greedy Time: {greedy_time} seconds, "
+                    #            f"B&B Time: {bnb_time} seconds\n")
+                    file.write(f"l={l}, n={n}, t={t}, ")
+                    if greedy_time is not None:
+                        file.write(f"Greedy Time: {greedy_time:.4f} seconds, ")
+                    else:
+                        file.write("Greedy Time: DNF, ")
+                    if bnb_time is not None:
+                        file.write(f"B&B Time: {bnb_time:.4f} seconds\n")
+                    else:
+                        file.write("B&B Time: DNF\n")
 
 def create_expected_solutions_table():
     # Format: (l, n, t, greedy_solution, greedy_score, bnb_solution, bnb_distance)
@@ -256,7 +279,7 @@ def verify_solutions(dna):
 
     for l, n, t, greedy_expected, greedy_score, bnb_expected, bnb_distance in table:
         # Run algorithms
-        greedy_solutions, greedy_consensus, greedy_score = greedy_motif_search(dna, n, l, t)
+        greedy_solutions, greedy_consensus, greedy_score = recursive_greedy_motif_search(dna, n, l, t)
         bnb_solutions, bnb_consensus, bnb_scores = branch_and_bound_motif_search(dna, n, l, t)
 
         # Check if expected solutions are found
