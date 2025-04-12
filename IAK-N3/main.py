@@ -1,5 +1,5 @@
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Any
 import numpy as np
 import sys
 from itertools import product
@@ -99,6 +99,49 @@ def greedy_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[List[int], st
     return best_starts, consensus, best_score
 
 
+def recursive_greedy_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[List[int], str, int]:
+    nmers = get_nmers(dna, n, t)
+    best_score = 0
+    best_motifs = []
+    best_positions = []
+
+    expected_combinations = (n - l + 1) ** t
+    combinations_explored = 0
+
+    def explore_combinations(index, current_motifs, current_positions):
+        nonlocal best_score, best_motifs, best_positions, combinations_explored
+
+        if index == t:
+            combinations_explored += 1
+            current_score = score_motifs(current_motifs)
+
+            if combinations_explored % 1000 == 0:
+                print(f"Explored {combinations_explored}/{expected_combinations} combinations")
+
+            if current_score > best_score:
+                best_score = current_score
+                best_motifs = current_motifs.copy()
+                best_positions = current_positions.copy()
+            return
+
+        for start in range(n - l + 1):
+            motif = nmers[index][start:start + l]
+            explore_combinations(
+                index + 1,
+                current_motifs + [motif],
+                current_positions + [start + 1] # 1-indexed
+            )
+
+    # Start recursive exploration
+    explore_combinations(0, [], [])
+
+    print(f"Explored {combinations_explored}/{expected_combinations} combinations")
+    if combinations_explored != expected_combinations:
+        print("Warning: Not all combinations were explored!")
+
+    consensus = get_consensus(best_motifs)
+    return best_positions, consensus, best_score
+
 def hamming_distance(s1: str, s2: str) -> int:
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
@@ -113,40 +156,49 @@ def min_hamming_distance(pattern: str, text: str, l: int) -> Tuple[int, int]:
             min_dist = dist
             min_pos = i
 
-    return min_dist, min_pos + 1  # 1-indexed position
+    return min_dist, min_pos + 1  # 1-indexed
 
 
-def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[List[int], str, int]:
+def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> tuple[list[Any], str, float]:
     nmers = get_nmers(dna, n, t)
+    nucleotides = ['A', 'C', 'G', 'T']
 
-    # Generate all possible l-mers (potential consensus sequences)
     best_consensus = ""
     best_distance = float('inf')
     best_positions = []
 
-    # Let's optimize by only generating common l-mers from the DNA sequence
-    all_lmers = set()
-    nucleotides = ['A', 'T', 'G', 'C']
-    all_lmers = [''.join(p) for p in product(nucleotides, repeat=l)]
-
-    # use l-mers present in the sequence
-    for consensus_pattern in all_lmers:
+    def calculate_partial_distance(partial_pattern):
         total_distance = 0
         positions = []
 
         for nmer in nmers:
-            dist, pos = min_hamming_distance(consensus_pattern, nmer, l)
-            total_distance += dist
+            min_dist, pos = min_hamming_distance(partial_pattern, nmer, len(partial_pattern))
+            total_distance += min_dist
             positions.append(pos)
 
-            # If current distance is already worse than best
             if total_distance >= best_distance:
                 break
 
-        if total_distance < best_distance:
-            best_distance = total_distance
-            best_consensus = consensus_pattern
-            best_positions = positions
+        return total_distance, positions
+
+    def dfs(partial_consensus):
+        nonlocal best_consensus, best_distance, best_positions
+
+        current_distance, current_positions = calculate_partial_distance(partial_consensus)
+
+        if current_distance >= best_distance:
+            return
+
+        if len(partial_consensus) == l:
+            best_distance = current_distance
+            best_consensus = partial_consensus
+            best_positions = current_positions
+            return
+
+        for nucleotide in nucleotides:
+            dfs(partial_consensus + nucleotide)
+
+    dfs("")
 
     return best_positions, best_consensus, best_distance
 
@@ -154,9 +206,9 @@ def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> Tuple[Lis
 def measure_performance(dna: str):
     filename = "performance_results.txt"
 
-    for l in range(2, 11):
-        for n in range(l, 101):
-            for t in range(2, 6):
+    for t in range(2, 6):
+        for l in range(2, 11):
+            for n in range(10, 101, 10):
                 print(f"\nTesting with l={l}, n={n}, t={t}")
                 # Measure greedy algorithm
                 start_time = time.time()
@@ -175,11 +227,63 @@ def measure_performance(dna: str):
                     file.write(f"l={l}, n={n}, t={t}, Greedy Time: {greedy_time:.4f} seconds, "
                                f"B&B Time: {bnb_time:.4f} seconds\n")
 
+
+def create_expected_solutions_table():
+    # Format: (l, n, t, greedy_solution, greedy_score, bnb_solution, bnb_distance)
+    return [
+        (3, 10, 2, "CAA", 5, "AGC", 1),
+        (5, 15, 2, "CAAAT", 10, "CAAAT", 0),
+        (7, 20, 2, "CAAATGA", 12, "CAAATGA", 2),
+        (3, 10, 3, "CAA", 8, "CAA", 1),
+        (5, 15, 3, "CAAAT", 13, "AAATG", 2),
+        (7, 15, 3, "CAAATGA", 16, "AGATGTC", 5),
+        (7, 20, 3, "CAAATGC", 18, "CAAATGC", 3),
+        (3, 10, 4, "CAA", 10, "CAA", 2),
+        (5, 15, 4, "CAAAT", 17, "AAATG", 3),
+        (7, 15, 4, "CAAATGC", 22, "CAAATGC", 6),
+        (7, 20, 4, "TTCCAAG", 23, "TTCCAAG", 5),
+        (3, 10, 5, "CAA", 12, "CAA", 3),
+        (5, 15, 5, "CAAAT", 20, "AAATG", 5),
+    ]
+
+
+def verify_solutions(dna):
+    table = create_expected_solutions_table()
+    print("\nVerifying solutions against reference table:")
+    print("=" * 70)
+    print(f"{'l':^3} {'n':^3} {'t':^3} {'Expected Greedy':^15} {'Found?':^7} {'Expected B&B':^15} {'Found?':^7}")
+    print("-" * 70)
+
+    for l, n, t, greedy_expected, greedy_score, bnb_expected, bnb_distance in table:
+        # Run algorithms
+        greedy_solutions, greedy_consensus, greedy_score = greedy_motif_search(dna, n, l, t)
+        bnb_solutions, bnb_consensus, bnb_scores = branch_and_bound_motif_search(dna, n, l, t)
+
+        # Check if expected solutions are found
+        greedy_found = greedy_expected == greedy_consensus and greedy_score == greedy_score
+        bnb_found = bnb_expected == bnb_consensus and bnb_scores == bnb_scores
+
+        greedy_status = "✓" if greedy_found else "✗"
+        bnb_status = "✓" if bnb_found else "✗"
+
+        print(f"{l:^3} {n:^3} {t:^3} {greedy_expected + '(' + str(greedy_score) + ')':^15} {greedy_status:^7} "
+              f"{bnb_expected + '(' + str(bnb_distance) + ')':^15} {bnb_status:^7}")
+
+        if not greedy_found:
+            print(f"  Greedy found instead: {greedy_consensus}, score: {greedy_score}")
+        if not bnb_found:
+            print(f"  B&B found instead: {bnb_consensus}, distance: {bnb_scores}")
+
+    print("=" * 70)
+
 if __name__ == '__main__':
     filename = "DNK1.txt"
 
     measure_performance(read_dna_file(filename))
     exit(0)
+
+    # verify_solutions(read_dna_file(filename))
+    # exit(0)
 
     if len(sys.argv) > 1:
         filename = sys.argv[1]
@@ -199,11 +303,12 @@ if __name__ == '__main__':
         ValueError("Invalid parameters: 2 <= l <= 10, l <= n <= 100, 2 <= t <= 5")
 
     # Run search and performance measurement
-    greedy_starts, greedy_consensus, greedy_score = greedy_motif_search(dna, n, l, t)
+    # greedy_starts, greedy_consensus, greedy_score = greedy_motif_search(dna, n, l, t)
+    greedy_starts, greedy_consensus, greedy_score = recursive_greedy_motif_search(dna, n, l, t)
     bnb_starts, bnb_consensus, bnb_distance = branch_and_bound_motif_search(dna, n, l, t)
 
     print("\nResults:")
-    print(f"Greedy method consensus: {greedy_consensus} (score: {greedy_score})")
-    print(f"Greedy method positions: {greedy_starts}")
+    # print(f"Greedy method consensus: {greedy_consensus} (score: {greedy_score})")
+    # print(f"Greedy method positions: {greedy_starts}")
     print(f"Branch & Bound consensus: {bnb_consensus} (distance: {bnb_distance})")
     print(f"Branch & Bound positions: {bnb_starts}")
