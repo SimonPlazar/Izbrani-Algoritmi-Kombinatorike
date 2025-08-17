@@ -184,6 +184,8 @@ def branch_and_bound_motif_search(dna: str, n: int, l: int, t: int) -> tuple[lis
     def dfs(partial_consensus):
         nonlocal best_consensus, best_distance, best_positions
 
+        # print("Current partial consensus:", partial_consensus)
+
         current_distance, current_positions = calculate_partial_distance(partial_consensus)
 
         if current_distance >= best_distance:
@@ -302,8 +304,8 @@ def verify_solutions(dna):
 if __name__ == '__main__':
     filename = "DNK1.txt"
 
-    measure_performance(read_dna_file(filename))
-    exit(0)
+    # measure_performance(read_dna_file(filename))
+    # exit(0)
 
     # verify_solutions(read_dna_file(filename))
     # exit(0)
@@ -331,7 +333,7 @@ if __name__ == '__main__':
     bnb_starts, bnb_consensus, bnb_distance = branch_and_bound_motif_search(dna, n, l, t)
 
     print("\nResults:")
-    # print(f"Greedy method consensus: {greedy_consensus} (score: {greedy_score})")
-    # print(f"Greedy method positions: {greedy_starts}")
+    print(f"Greedy method consensus: {greedy_consensus} (score: {greedy_score})")
+    print(f"Greedy method positions: {greedy_starts}")
     print(f"Branch & Bound consensus: {bnb_consensus} (distance: {bnb_distance})")
     print(f"Branch & Bound positions: {bnb_starts}")

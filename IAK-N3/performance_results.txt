@@ -2724,7 +2724,8 @@ l=10, n=60, t=5, Greedy Time: 0.5316 seconds, B&B Time: 10.5396 seconds
 l=10, n=70, t=5, Greedy Time: 0.6888 seconds, B&B Time: 8.4835 seconds
 l=10, n=80, t=5, Greedy Time: 0.9233 seconds, B&B Time: 9.9291 seconds
 l=10, n=90, t=5, Greedy Time: 1.2140 seconds, B&B Time: 7.8714 seconds
-l=10, n=100, t=5, Greedy Time: 1.5852 seconds, B&B Time: 12.4466 secondsl=2, n=10, t=2, Greedy Time: 0.0000 seconds, B&B Time: 0.0000 seconds
+l=10, n=100, t=5, Greedy Time: 1.5852 seconds, B&B Time: 12.4466 seconds
+l=2, n=10, t=2, Greedy Time: 0.0000 seconds, B&B Time: 0.0000 seconds
 l=2, n=20, t=2, Greedy Time: 0.0010 seconds, B&B Time: 0.0000 seconds
 l=2, n=30, t=2, Greedy Time: 0.0030 seconds, B&B Time: 0.0000 seconds
 l=2, n=40, t=2, Greedy Time: 0.0230 seconds, B&B Time: 0.0000 seconds

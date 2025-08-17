@@ -226,8 +226,6 @@ def improvedBreakpointReversalSort(data, heuristic=1):
             end_idx = index
             data[start_idx:end_idx + 1] = list(reversed(data[start_idx:end_idx + 1]))
         else:
-            # Index is within the strip - no need to reverse
-            rotations += 1
             continue
 
         # Update only the affected breakpoints and strips

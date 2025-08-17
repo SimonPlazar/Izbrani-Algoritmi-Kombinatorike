@@ -206,8 +206,8 @@ if __name__ == "__main__":
     search_time = time.time() - start_time
     print("[KeywordTree] Najdeni nizi:")
     for word, positions in matches.items():
-    #     print(f"'{word}' najden na indeksih: {positions}")
-        print(f"'{word}' najden {len(positions)} krat")
+        print(f"'{word}' najden na indeksih: {positions}")
+        # print(f"'{word}' najden {len(positions)} krat")
     print(f"[KeywordTree] Čas iskanja: {search_time*1000:.4f} ms")
     print(f"[KeywordTree] Skupni čas: {(build_time + search_time)*1000:.4f} ms\n")
 
@@ -226,8 +226,8 @@ if __name__ == "__main__":
         start_time = time.time()
         result = suffixtree.search_approx(pattern, max_errors=k)
         search_time += time.time() - start_time
-        # print(f"'{pattern}' najden na indeksih: {result}")
-        print(f"'{pattern}' najden {len(result)} krat")
+        print(f"'{pattern}' najden na indeksih: {result}")
+        # print(f"'{pattern}' najden {len(result)} krat")
     print(f"[SuffixTree] Čas iskanja: {search_time*1000:.4f} ms")
     print(f"[SuffixTree] Skupni čas: {(build_time + search_time)*1000:.4f} ms")
 
